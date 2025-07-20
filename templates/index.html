@@ -1,0 +1,219 @@
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Voice-to-Text Accuracy Test</title>
+  <style>
+    body {
+      font-family: Arial;
+      background-color: #f2f2f2;
+      padding: 20px;
+    }
+    textarea {
+      width: 100%;
+      height: 150px;
+      font-size: 16px;
+      margin-bottom: 15px;
+      padding: 10px;
+    }
+    button {
+      padding: 10px 30px;
+      font-size: 16px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+    }
+    #result {
+      margin-top: 30px;
+      background-color: #e0f7fa;
+      padding: 20px;
+      font-size: 16px;
+      border-radius: 5px;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+  <h1>Voice Transcription Accuracy Checker</h1>
+
+  <form id="accuracyForm">
+    <label><strong>Original Text:</strong></label>
+    <textarea id="originalText" required></textarea>
+
+    <label><strong>Voice Transcribed Text:</strong></label>
+    <textarea id="generatedText" required></textarea>
+
+    <button type="submit">Check Accuracy</button>
+  </form>
+
+  <div id="result" style="display: none;"></div>
+
+  <script>
+    document.getElementById("accuracyForm").addEventListener("submit", function (e) {
+      e.preventDefault();
+      const original = document.getElementById("originalText").value;
+      const generated = document.getElementById("generatedText").value;
+
+      fetch("/evaluate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ original, generated })
+      })
+      .then(res => res.json())
+      .then(data => {
+        const resultDiv = document.getElementById("result");
+        resultDiv.style.display = "block";
+        resultDiv.innerText = data.result || "Error: " + data.error;
+      })
+      .catch(err => {
+        document.getElementById("result").innerText = "Error occurred while fetching response.";
+        document.getElementById("result").style.display = "block";
+      });
+    });
+  </script>
+</body>
+</html> -->
+
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Cyber Interview Assistant</title>
+  <style>
+    body {
+      font-family: Arial;
+      background-color: #f2f2f2;
+      padding: 20px;
+    }
+    textarea {
+      width: 100%;
+      height: 150px;
+      font-size: 16px;
+      margin-bottom: 15px;
+      padding: 10px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      margin-right: 10px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    #result {
+      margin-top: 30px;
+      background-color: #e0f7fa;
+      padding: 20px;
+      font-size: 16px;
+      border-radius: 5px;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎤 Cyber Interview Assistant</h1>
+
+  <label><strong>Speak your interview question:</strong></label><br>
+  <button id="startMic">🎤 Start Speaking</button>
+  <button id="getAnswer">🧠 Get Answer</button><br><br>
+  <textarea id="originalText" placeholder="Your question will appear here..." required></textarea>
+
+  <div id="result" style="display: none;"></div>
+
+  <script>
+  const micBtn = document.getElementById("startMic");
+  const getAnswerBtn = document.getElementById("getAnswer");
+  const originalBox = document.getElementById("originalText");
+  const resultDiv = document.getElementById("result");
+
+  let recognition;
+  let isMicActive = false;
+
+  if ('webkitSpeechRecognition' in window) {
+    recognition = new webkitSpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = "en-IN";
+
+    let finalTranscript = "";
+
+    micBtn.onclick = () => {
+      if (!isMicActive) {
+        // Mic start hone se pehle text area clear karo
+        originalBox.value = "";
+        finalTranscript = "";
+
+        recognition.start();
+        micBtn.innerText = "🛑 Stop Speaking";
+        isMicActive = true;
+      } else {
+        recognition.stop();
+        micBtn.innerText = "🎤 Start Speaking";
+        isMicActive = false;
+      }
+    };
+
+    recognition.onresult = (event) => {
+      let interimTranscript = "";
+      for (let i = event.resultIndex; i < event.results.length; ++i) {
+        const transcript = event.results[i][0].transcript;
+        if (event.results[i].isFinal) {
+          finalTranscript += transcript + " ";
+        } else {
+          interimTranscript += transcript;
+        }
+      }
+      originalBox.value = finalTranscript + interimTranscript;
+    };
+
+    recognition.onerror = (e) => {
+      alert("Speech recognition error: " + e.error);
+      micBtn.innerText = "🎤 Start Speaking";
+      isMicActive = false;
+    };
+  } else {
+    alert("Speech Recognition not supported in this browser.");
+  }
+
+  getAnswerBtn.onclick = () => {
+    const original = originalBox.value.trim();
+    if (!original) {
+      alert("Please speak or type your question first.");
+      return;
+    }
+
+    // Mic ko band karo agar chalu hai
+    if (isMicActive) {
+      recognition.stop();
+      micBtn.innerText = "🎤 Start Speaking";
+      isMicActive = false;
+    }
+
+    resultDiv.innerText = "⏳ Thinking...";
+    resultDiv.style.display = "block";
+
+    fetch("/evaluate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ original })
+    })
+    .then(res => res.json())
+    .then(data => {
+      resultDiv.innerText = data.result || ("Error: " + data.error);
+    })
+    .catch(err => {
+      resultDiv.innerText = "Error occurred while fetching response.";
+    });
+  };
+</script>
+
+</body>
+</html>
+
+
